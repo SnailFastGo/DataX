@@ -141,14 +141,20 @@ public abstract class Channel {
 
     public Record pull() {
         Record record = this.doPull();
-        this.statPull(1L, record.getByteSize());
+		if (!(record instanceof TerminateRecord)) {
+			this.statPull(1L, record.getByteSize());
+		}
         return record;
     }
 
     public void pullAll(final Collection<Record> rs) {
         Validate.notNull(rs);
         this.doPullAll(rs);
-        this.statPull(rs.size(), this.getByteSize(rs));
+        if(rs.contains(TerminateRecord.get())){
+        		this.statPull(rs.size() - 1, this.getByteSize(rs));
+        }else{
+        		this.statPull(rs.size(), this.getByteSize(rs));
+        }
     }
 
     protected abstract void doPush(Record r);
